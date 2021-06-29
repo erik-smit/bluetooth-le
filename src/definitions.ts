@@ -57,6 +57,15 @@ export enum ScanMode {
   SCAN_MODE_LOW_LATENCY = 2,
 }
 
+export interface BleGattService {
+  UUID: string;
+  characteristics: string[];
+}
+
+export interface BleGattServices {
+  services?: BleGattService[];
+}
+
 export interface BleDevice {
   /**
    * ID of the device, which will be needed for further calls.
@@ -176,8 +185,10 @@ export interface BluetoothLePlugin {
     listenerFunc: (result: ScanResultInternal) => void,
   ): PluginListenerHandle;
   connect(options: DeviceIdOptions): Promise<void>;
+  getServices(options: DeviceIdOptions): Promise<BleGattServices>;
   createBond(options: DeviceIdOptions): Promise<void>;
   isBonded(options: DeviceIdOptions): Promise<BooleanResult>;
+  readRemoteRssi(options: DeviceIdOptions): Promise<ReadResult>;
   disconnect(options: DeviceIdOptions): Promise<void>;
   read(options: ReadOptions): Promise<ReadResult>;
   write(options: WriteOptions): Promise<void>;

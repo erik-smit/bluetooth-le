@@ -8,6 +8,10 @@ import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.getcapacitor.JSArray
+import com.getcapacitor.JSObject
+import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginMethod
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -65,6 +69,17 @@ class Device(
             }
         }
 
+        override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
+            super.onReadRemoteRssi(gatt, rssi, status)
+            val key = "read|remoterssi";
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                val array = ByteArray(1)
+                array[0] = rssi.toByte();
+                resolve(key, bytesToString(array))
+            } else {
+                reject(key, "onReadRemoteRssi() failed")
+            }
+        }
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -169,6 +184,20 @@ class Device(
 
     fun isConnected(): Boolean {
         return connectionState == STATE_CONNECTED
+    }
+
+    fun getServices(): MutableList<BluetoothGattService>? {
+        return bluetoothGatt?.services
+    }
+
+    fun readRemoteRssi(callback: (CallbackResponse) -> Unit) {
+        val key = "read|remoterssi"
+        callbackMap[key] = callback
+        val result = bluetoothGatt?.readRemoteRssi()
+        if (result != true) {
+            reject(key, "readRemoteRssi() failed")
+            return
+        }
     }
 
     private fun requestMtu(mtu: Int) {

@@ -275,6 +275,43 @@ class BluetoothLe : Plugin() {
         }
     }
 
+    @PluginMethod
+    fun getServices(call: PluginCall) {
+        val device = getDevice(call) ?: return
+
+        val ret = JSObject()
+        val retServices= JSArray()
+
+        val gattServices = device.getServices();
+        for (service in gattServices!!) {
+            val bleGattService = JSObject()
+            bleGattService.put("UUID", service.uuid);
+            val bleGattCharacteristics = JSArray()
+            for(characteristic in service.characteristics) {
+                bleGattCharacteristics.put(characteristic.uuid);
+            }
+            bleGattService.put("characteristics", bleGattCharacteristics);
+            retServices.put(bleGattService);
+        }
+        ret.put("services", retServices);
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun readRemoteRssi(call: PluginCall) {
+        val device = getOrCreateDevice(call) ?: return
+        device.readRemoteRssi { response ->
+            run {
+                if (response.success) {
+                    val ret = JSObject()
+                    ret.put("value", response.value)
+                    call.resolve(ret)
+                } else {
+                    call.reject(response.value)
+                }
+            }
+        }
+    }
     private fun onDisconnect(deviceId: String) {
         try {
             notifyListeners("disconnected|${deviceId}", null)

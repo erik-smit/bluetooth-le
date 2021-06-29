@@ -7,6 +7,7 @@ import {
 } from './conversion';
 import type {
   BleDevice,
+  BleGattServices,
   BluetoothLePlugin,
   BooleanResult,
   DeviceIdOptions,
@@ -137,6 +138,10 @@ export class BluetoothLeWeb extends WebPlugin implements BluetoothLePlugin {
     }
   }
 
+  async getServices(): Promise<BleGattServices> {
+    throw new Error('Unavailable');
+  }
+
   private onDisconnected(event: Event) {
     // do not use `this` in event listener
     const deviceId = (event.target as BluetoothDevice).id;
@@ -152,6 +157,10 @@ export class BluetoothLeWeb extends WebPlugin implements BluetoothLePlugin {
     throw new Error('Unavailable');
   }
 
+  async readRemoteRssi(): Promise<ReadResult> {
+    throw new Error('Unavailable');
+  }
+  
   async disconnect(options: DeviceIdOptions): Promise<void> {
     this.getDevice(options.deviceId).gatt?.disconnect();
   }

@@ -5,6 +5,7 @@ import type { DisplayStrings } from './config';
 import { dataViewToHexString, hexStringToDataView } from './conversion';
 import type {
   BleDevice,
+  BleGattServices,
   Data,
   ReadResult,
   RequestBleDeviceOptions,
@@ -79,6 +80,8 @@ export interface BleClientInterface {
     deviceId: string,
     onDisconnect?: (deviceId: string) => void,
   ): Promise<void>;
+
+  getServices(deviceId: string): Promise<BleGattServices>;
 
   /**
    * Create a bond with a peripheral BLE device.
@@ -285,6 +288,10 @@ class BleClientClass implements BleClientInterface {
     });
   }
 
+  async getServices(deviceId: string): Promise<BleGattServices> {
+    return await BluetoothLe.getServices({ deviceId });
+  }
+
   async createBond(deviceId: string): Promise<void> {
     await this.queue(async () => {
       await BluetoothLe.createBond({ deviceId });
@@ -297,6 +304,18 @@ class BleClientClass implements BleClientInterface {
       return result.value;
     });
     return isBonded;
+  }
+
+  async readRemoteRssi(
+    deviceId: string
+  ): Promise<DataView> {
+    const value = await this.queue(async () => {
+      const result = await BluetoothLe.readRemoteRssi({
+        deviceId,
+      });
+      return this.convertValue(result.value);
+    });
+    return value;
   }
 
   async disconnect(deviceId: string): Promise<void> {
